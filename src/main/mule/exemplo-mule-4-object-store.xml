@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cc1ec7c0-77e8-486b-8fc7-829feebfcedc" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="exemplo-mule-4-object-storeFlow" doc:id="9be3778f-6bf8-4fd2-9181-d20919ff5a6c" >
+		<http:listener doc:name="POST:/store" doc:id="616cc782-5f85-4926-8062-eddab660b013" config-ref="HTTP_Listener_config" path="/store" allowedMethods="POST"/>
+		<os:store doc:name="Store" doc:id="426c02c8-e091-4789-8bf7-e75c0d3fc8c8" key="#[payload.key]">
+			<os:value ><![CDATA[#[payload.value]]]></os:value>
+		</os:store>
+		<set-payload value="#['Chave: ' ++ payload.key ++ ' e Valor: ' ++ payload.value ++ ' adicionados com sucesso']" doc:name="Set Payload" doc:id="1720d70e-f29a-4e06-a955-718a92173ca7" />
+	</flow>
+	<flow name="exemplo-mule-4-object-storeFlow1" doc:id="4d5a4f53-e89b-4fb7-8644-b0c217e610dc" >
+		<http:listener doc:name="GET:/store" doc:id="cffba973-30f3-4c4b-b58a-b3f0d4d39200" config-ref="HTTP_Listener_config" path="/store/{key}" allowedMethods="GET"/>
+		<os:retrieve doc:name="Retrieve" doc:id="1fc62f20-fa6b-4144-a767-d66c0b7af9a2" key="#[attributes.uriParams.key]">
+			<os:default-value ><![CDATA[#["Não encontrado"]]]></os:default-value>
+		</os:retrieve>
+	</flow>
+</mule>
