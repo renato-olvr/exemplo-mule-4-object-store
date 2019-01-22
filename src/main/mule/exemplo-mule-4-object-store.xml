@@ -1,24 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cc1ec7c0-77e8-486b-8fc7-829feebfcedc" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<flow name="exemplo-mule-4-object-storeFlow" doc:id="9be3778f-6bf8-4fd2-9181-d20919ff5a6c" >
+	<flow name="createFlow" doc:id="9be3778f-6bf8-4fd2-9181-d20919ff5a6c" >
 		<http:listener doc:name="POST:/store" doc:id="616cc782-5f85-4926-8062-eddab660b013" config-ref="HTTP_Listener_config" path="/store" allowedMethods="POST"/>
 		<os:store doc:name="Store" doc:id="426c02c8-e091-4789-8bf7-e75c0d3fc8c8" key="#[payload.key]">
 			<os:value ><![CDATA[#[payload.value]]]></os:value>
 		</os:store>
 		<set-payload value="#['Chave: ' ++ payload.key ++ ' e Valor: ' ++ payload.value ++ ' adicionados com sucesso']" doc:name="Set Payload" doc:id="1720d70e-f29a-4e06-a955-718a92173ca7" />
 	</flow>
-	<flow name="exemplo-mule-4-object-storeFlow1" doc:id="4d5a4f53-e89b-4fb7-8644-b0c217e610dc" >
-		<http:listener doc:name="GET:/store" doc:id="cffba973-30f3-4c4b-b58a-b3f0d4d39200" config-ref="HTTP_Listener_config" path="/store/{key}" allowedMethods="GET"/>
-		<os:retrieve doc:name="Retrieve" doc:id="1fc62f20-fa6b-4144-a767-d66c0b7af9a2" key="#[attributes.uriParams.key]">
-			<os:default-value ><![CDATA[#["Não encontrado"]]]></os:default-value>
+	<flow name="getByKeyFlow" doc:id="4d5a4f53-e89b-4fb7-8644-b0c217e610dc" >
+		<http:listener doc:name="GET:/store/{key}" doc:id="cffba973-30f3-4c4b-b58a-b3f0d4d39200" config-ref="HTTP_Listener_config" path="/store/{key}" allowedMethods="GET"/>
+		<os:contains doc:name="Contains" doc:id="93b483fd-d849-49c8-88f7-91032997fb64" key="#[attributes.uriParams.key]" target="chaveExiste"/>
+		<choice doc:name="Choice" doc:id="e397bfc1-40d6-4477-a6ca-1446b67e9484" >
+			<when expression="#[vars.chaveExiste]">
+				<os:retrieve doc:name="Retrieve" doc:id="1fc62f20-fa6b-4144-a767-d66c0b7af9a2" key="#[attributes.uriParams.key]">
 		</os:retrieve>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="8bda70ec-3dba-40cb-bc76-dade02fdc850" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensaegem: "A chave não existe"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="getAllKeyAndValueFlow" doc:id="4d9d3cc5-ec42-4c39-bee5-b53bcf6f2364" >
+		<http:listener doc:name="GET:/store" doc:id="2b8c795a-1381-4916-a6db-e255b8f31757" config-ref="HTTP_Listener_config" path="/store" allowedMethods="GET"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="d8774346-8720-4d8b-a223-d11135dc6ec8" />
+		<ee:transform doc:name="Transform Message" doc:id="01a7f2d4-4787-4bc6-9d3b-34894165aa43" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getAllKeysFlow" doc:id="f0e17704-be5f-47e4-acaf-556a45384aa2" >
+		<http:listener doc:name="GET:/store/keys" doc:id="c481ed94-0bb3-4877-b523-cda00ed62da6" config-ref="HTTP_Listener_config" path="/store/keys" allowedMethods="GET"/>
+		<os:retrieve-all-keys doc:name="Retrieve all keys" doc:id="3cfe801b-7877-4b2f-9697-42919896a31a" />
+		<ee:transform doc:name="Transform Message" doc:id="f6a03a62-14e5-4788-8471-b249107c64f2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="deleteByKeyFlow" doc:id="b830af1f-2918-411c-a39c-20f1394c4008" >
+		<http:listener doc:name="DELETE:/store/{key}" doc:id="7adcae43-80ae-4fe9-b9b6-4437c3b64253" config-ref="HTTP_Listener_config" path="/store/{key}" allowedMethods="DELETE"/>
+		<os:contains doc:name="Contains" doc:id="16ab1e13-5b08-409a-9dc6-0833143ff3b5" key="#[attributes.uriParams.key]" target="chaveExiste"/>
+		<choice doc:name="Choice" doc:id="359d7c69-b218-428d-bbf8-32d071fba8be" >
+			<when expression="#[vars.chaveExiste]">
+				<os:remove doc:name="Remove" doc:id="d5b05373-a990-4c81-8a53-9fc90cdb121a" key="#[attributes.uriParams.key]" />
+				<ee:transform doc:name="Transform Message" doc:id="ad0ed6cd-3c55-4987-a169-f16f4346ebc9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensagem: "excluido com sucesso"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="fc7e335a-82ca-44f3-a847-e1d7bc75487d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensaegem: "A chave não existe"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="deleteAllFlow" doc:id="621f1aff-2d20-4021-8b6d-5f85ff13f4ae" >
+		<http:listener doc:name="DELETE:/store" doc:id="38db282e-10eb-409f-859c-6e4c5fc126b3" config-ref="HTTP_Listener_config" path="/store" allowedMethods="DELETE"/>
+		<os:clear doc:name="Clear" doc:id="1261d5b5-700d-4d94-9a73-f60d4a246ef2" />
 	</flow>
 </mule>
