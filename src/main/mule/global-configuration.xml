@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<os:object-store name="Object_store_1" doc:name="Object store" doc:id="7ab00856-70e3-4bdf-9a19-3c9c84e3239b" />
+	<os:object-store name="Object_store_2" doc:name="Object store" doc:id="8679664d-4201-498f-9adc-b2369f226d4b" />
+	<flow name="postStore1Flow" doc:id="e5f5f211-70f7-4544-8c69-727b5c00b867" >
+		<http:listener doc:name="POST:/store1" doc:id="feb0dd67-a588-42d0-a0cb-4d2cec91f4c4" config-ref="HTTP_Listener_config" path="/store1" allowedMethods="POST"/>
+		<os:store doc:name="Store" doc:id="1001b30e-e299-4ed0-8170-1782927e8f03" key="#[payload.key]" objectStore="Object_store_1">
+			<os:value ><![CDATA[#[payload.value]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="82e26ca9-d540-4f08-b121-cb12f9b9b24e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensagem: "incluido com sucesso"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getStore1Flow" doc:id="938e88fb-3332-4854-bbd5-776d60205b47" >
+		<http:listener doc:name="GET:/store1" doc:id="19d060c6-26ea-45ca-bf88-2dea5d5781f3" config-ref="HTTP_Listener_config" path="/store1" allowedMethods="GET"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="29356391-24e6-4e90-a2ac-4dc5f829c93b" objectStore="Object_store_1"/>
+		<ee:transform doc:name="Transform Message" doc:id="1294e50d-b2fb-4e5b-a9b2-34ec5f3041d1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="postStore2Flow" doc:id="0217eb6f-1013-44ac-b668-2246777b8f98" >
+		<http:listener doc:name="POST:/store2" doc:id="8f1e2e01-8903-4039-8790-536bb28d3921" config-ref="HTTP_Listener_config" path="/store2" allowedMethods="POST"/>
+		<os:store doc:name="Store" doc:id="017826c1-abbc-449a-860c-12f8639fd5ad" key="#[payload.key]" objectStore="Object_store_2">
+			<os:value ><![CDATA[#[payload.value]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="3f6f081b-635b-4301-8c6b-734e8ced815f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensagem: "incluido com sucesso"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getStore2Flow" doc:id="13516c4a-6aa7-4491-8bc0-2f4c249e98cc" >
+		<http:listener doc:name="GET:/store2" doc:id="71522853-eb8c-436c-9f02-1f99e7c0033c" config-ref="HTTP_Listener_config" path="/store2" allowedMethods="GET"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="55377d93-0ef7-4d83-83a4-d5c242e326da" objectStore="Object_store_2"/>
+		<ee:transform doc:name="Transform Message" doc:id="bdc98004-2511-4f9d-ad9a-a5eda85ff1b7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

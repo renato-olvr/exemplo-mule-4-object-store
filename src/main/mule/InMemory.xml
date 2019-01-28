@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<os:object-store name="Object_store_InMemory" doc:name="Object store" doc:id="2774dcfb-a57f-4ce0-9ae4-c5c22c15cc32" persistent="false" />
+	<flow name="createInMemoryFlow" doc:id="22263818-5f13-4f94-9dc0-345889427ad5" >
+		<http:listener doc:name="POST:/in-memory/store" doc:id="0d376db6-557a-41a5-99a6-aadbb3989229" config-ref="HTTP_Listener_config" path="/in-memory/store" allowedMethods="POST"/>
+		<os:store doc:name="Store" doc:id="da7f1519-9694-4e68-896e-a6f6e0cdd829" key="#[payload.key]" objectStore="Object_store_InMemory">
+			<os:value ><![CDATA[#[payload.value]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="41004a01-3d70-4c71-9646-ebafbfa4c350" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensagem: "incluido com sucesso"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getAllInMemoryFlow" doc:id="b4cb3733-7b87-4062-841d-2cd472bb1088" >
+		<http:listener doc:name="GET:/in-memory/store" doc:id="3a648f17-3acf-4e88-a5b2-ae31fb188968" config-ref="HTTP_Listener_config" path="/in-memory/store" allowedMethods="GET"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="b288896f-2e50-4076-b169-6d8a836fcc84" objectStore="Object_store_InMemory"/>
+		<ee:transform doc:name="Transform Message" doc:id="74cba333-7f55-41fc-8916-2dbfb3b790f3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

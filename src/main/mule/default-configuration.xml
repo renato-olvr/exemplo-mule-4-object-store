@@ -96,5 +96,15 @@ output application/json
 	<flow name="deleteAllFlow" doc:id="621f1aff-2d20-4021-8b6d-5f85ff13f4ae" >
 		<http:listener doc:name="DELETE:/store" doc:id="38db282e-10eb-409f-859c-6e4c5fc126b3" config-ref="HTTP_Listener_config" path="/store" allowedMethods="DELETE"/>
 		<os:clear doc:name="Clear" doc:id="1261d5b5-700d-4d94-9a73-f60d4a246ef2" />
+		<ee:transform doc:name="Transform Message" doc:id="74f7483a-11d3-4a9a-bf5b-c3d54a1453ee" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	mensagem: "excluido com sucesso"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 	</flow>
 </mule>
